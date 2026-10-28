@@ -53,6 +53,21 @@ public class Bb implements Serializable {
     private StringBuilder conversation = new StringBuilder();
 
     /**
+     * Mode debug : affiche ou non le JSON des requêtes et réponses du LLM.
+     */
+    private boolean debug;
+
+    /**
+     * Texte JSON de la dernière requête envoyée à l'API du LLM.
+     */
+    private String texteRequeteJson;
+
+    /**
+     * Texte JSON de la dernière réponse de l'API du LLM.
+     */
+    private String texteReponseJson;
+
+    /**
      * Nombre de questions envoyées depuis le début du chat (traitement personnel, exercice bonus).
      */
     private int nbQuestions = 0;
@@ -114,6 +129,30 @@ public class Bb implements Serializable {
 
     public void setConversation(String conversation) {
         this.conversation = new StringBuilder(conversation);
+    }
+
+    public boolean isDebug() {
+        return debug;
+    }
+
+    public void setDebug(boolean debug) {
+        this.debug = debug;
+    }
+
+    public String getTexteRequeteJson() {
+        return texteRequeteJson;
+    }
+
+    public void setTexteRequeteJson(String texteRequeteJson) {
+        this.texteRequeteJson = texteRequeteJson;
+    }
+
+    public String getTexteReponseJson() {
+        return texteReponseJson;
+    }
+
+    public void setTexteReponseJson(String texteReponseJson) {
+        this.texteReponseJson = texteReponseJson;
     }
 
     /**
