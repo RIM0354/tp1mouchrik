@@ -1,7 +1,8 @@
 package ma.emsi.mouchrik.tp1.jsf;
 
 
-import ma.emsi.mouchrik.tp1.service.GenerateurReponse;
+import ma.emsi.mouchrik.tp1.llm.JsonAdapterPourGemini;
+import ma.emsi.mouchrik.tp1.llm.LlmInteraction;
 import jakarta.faces.application.FacesMessage;
 import jakarta.faces.context.FacesContext;
 import jakarta.faces.model.SelectItem;
@@ -11,6 +12,7 @@ import jakarta.inject.Named;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -44,7 +46,7 @@ public class Bb implements Serializable {
      */
     private String question;
     /**
-     * Dernière réponse de l'API OpenAI.
+     * Dernière réponse de l'API du LLM.
      */
     private String reponse;
     /**
@@ -68,15 +70,10 @@ public class Bb implements Serializable {
     private String texteReponseJson;
 
     /**
-     * Nombre de questions envoyées depuis le début du chat (traitement personnel, exercice bonus).
-     */
-    private int nbQuestions = 0;
-
-    /**
-     * Service pour modifier la question et générer la réponse.
+     * Gère le JSON des requêtes et réponses de l'API du LLM (Gemini) et envoie les requêtes.
      */
     @Inject
-    private GenerateurReponse generateurReponse;
+    private JsonAdapterPourGemini jsonAdapter;
 
     /**
      * Contexte JSF. Utilisé pour qu'un message d'erreur s'affiche dans le formulaire.
@@ -157,10 +154,8 @@ public class Bb implements Serializable {
 
     /**
      * Envoie la question au serveur.
-     * En attendant de l'envoyer à un LLM, le serveur fait un traitement quelconque, juste pour tester :
-     * le traitement (personnel, exercice bonus) construit une fiche d'analyse de la question
-     * (statistiques, mot le plus long, phrase en miroir, acronyme, palindrome), numérotée avec
-     * le numéro de la question dans le chat. Le rôle système est ajouté au début de la première réponse.
+     * La question est envoyée à l'API du LLM (Gemini) par l'intermédiaire de jsonAdapter.
+     * Au début de la conversation, le rôle système est d'abord transmis à jsonAdapter.
      *
      * @return null pour rester sur la même page.
      */
@@ -172,17 +167,27 @@ public class Bb implements Serializable {
             facesContext.addMessage(null, message);
             return null;
         }
-        
-        // Traite la question pour construire la réponse.
-        String roleSystemePourModification = null;
+
         if (this.conversation.isEmpty()) { // Si la conversation n'a pas encore commencé
-            roleSystemePourModification = this.roleSysteme; // Pour GenerateurReponse.modifier()
+            // Envoie le rôle système au LLM (par l'intermédiaire de jsonAdapter)
+            jsonAdapter.setSystemRole(this.roleSysteme);
             // Fige la liste déroulante qui permet de choisir le rôle système
             this.roleSystemeChangeable = false;
         }
-        this.nbQuestions++;
-        this.reponse += this.generateurReponse.genererReponse(this.question, roleSystemePourModification, this.nbQuestions);
-        
+        try {
+          LlmInteraction interaction = jsonAdapter.envoyerRequete(question);
+          this.reponse = interaction.reponseExtraite();
+          this.texteRequeteJson = interaction.questionJson();
+          this.texteReponseJson = interaction.reponseJson();
+        } catch (Exception e) {
+           this.reponse = "Erreur : " + e.getMessage();
+           FacesMessage message = 
+               new FacesMessage(FacesMessage.SEVERITY_ERROR,
+                                "Problème de connexion avec l'API du LLM", 
+                                "Problème de connexion avec l'API du LLM" + e.getMessage() + "\n" + Arrays.toString(e.getStackTrace()));
+           facesContext.addMessage(null, message);
+        }
+
         // La conversation contient l'historique des questions-réponses depuis le début.
         afficherConversation();
         return null;
