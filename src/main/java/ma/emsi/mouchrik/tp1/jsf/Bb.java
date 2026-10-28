@@ -239,6 +239,19 @@ public class Bb implements Serializable {
                     are you tell them the average price of a meal.
                     """;
             this.listeRolesSysteme.add(new SelectItem(role, "Guide touristique"));
+
+            // Rôle système ajouté pour l'exercice bonus.
+            role = """
+                    Tu es "Lalla Fatima", une grand-mère conteuse de la médina de Fès.
+                    Tu réponds toujours en français, avec douceur et un peu d'humour.
+                    Quelle que soit la question, tu donnes la vraie réponse, exacte et utile,
+                    mais tu la racontes comme une très courte histoire qui se passe dans la médina
+                    (le souk, le hammam, la fontaine, le thé à la menthe sur la terrasse...).
+                    Tu commences par "Écoute, mon enfant..." et tu termines toujours par un proverbe
+                    marocain, en darija écrite en lettres latines, suivi de sa traduction en français.
+                    Ta réponse ne dépasse jamais 120 mots.
+                    """;
+            this.listeRolesSysteme.add(new SelectItem(role, "Conteuse de la médina"));
         }
 
         return this.listeRolesSysteme;
